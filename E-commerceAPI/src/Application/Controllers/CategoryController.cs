@@ -1,7 +1,6 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
-using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers

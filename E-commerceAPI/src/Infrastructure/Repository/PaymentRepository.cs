@@ -1,9 +1,7 @@
-﻿using E_commerceAPI.src.Domain.DTO;
-using E_commerceAPI.src.Domain.Models;
+﻿using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {

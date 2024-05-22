@@ -1,6 +1,4 @@
-﻿using E_commerceAPI.src.Domain.Models;
-
-namespace E_commerceAPI.src.Domain.DTO
+﻿namespace E_commerceAPI.src.Domain.DTO
 {
     public class CategoryDto
     {

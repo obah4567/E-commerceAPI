@@ -1,7 +1,6 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
-using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers
@@ -122,7 +121,7 @@ namespace E_commerceAPI.src.Application.Controllers
                 existingCart.Id = WishList.Id;
                 existingCart.Product_Id = WishList.Product_Id;
                 existingCart.Product = WishList.Product;
-                
+
                 await _WishListRepository.Update(existingCart, cancellationToken);
                 await _WishListRepository.Save(cancellationToken);
 

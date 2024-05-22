@@ -1,7 +1,6 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
-using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers;
@@ -51,7 +50,7 @@ public class PaymentController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        
+
         var existingPayementId = await _paymentRepository.GetByIdAsync(payment.Id, cancellationToken);
         if (existingPayementId != null)
         {
@@ -108,7 +107,7 @@ public class PaymentController : ControllerBase
             {
                 return NotFound($"Payment {payment.Id} not found");
             }
-            
+
             existingPayment.Date = payment.Date;
             existingPayment.Method = payment.Method;
             existingPayment.Amount = payment.Amount;

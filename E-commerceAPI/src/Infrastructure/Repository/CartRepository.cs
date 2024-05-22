@@ -1,8 +1,6 @@
-﻿using E_commerceAPI.src.Domain.DTO;
-using E_commerceAPI.src.Domain.Models;
+﻿using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
@@ -28,7 +26,7 @@ namespace E_commerceAPI.src.Infrastructure.Repository
 
         public async Task<Cart> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var getById = await _context.Carts.FirstOrDefaultAsync(x => x.Id == id,cancellationToken);
+            var getById = await _context.Carts.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
             if (getById == null)
             {
                 return null;

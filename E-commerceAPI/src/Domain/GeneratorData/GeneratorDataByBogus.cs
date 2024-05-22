@@ -11,16 +11,16 @@ namespace E_commerceAPI.src.Domain.GeneratorData
         {
             using (var context = serviceProvider.GetRequiredService<Context>())
             {
-                if (!context.Categories.Any() && !context.Products.Any() && 
+                if (!context.Categories.Any() && !context.Products.Any() &&
                     !context.Shipment.Any() && !context.Carts.Any() &&
                     !context.Payment.Any() && !context.WishList.Any())
                 {
-                    var categories  =   GeneratorDataCategory(10);
-                    var shipments   =   GeneratorDataShipment(20);
-                    var products    =   GeneratorDataProduct(100);
-                    var carts       =   GeneratorDataCart(20, 10);
-                    var payments    =   GenerateDataPayment(10);
-                    var wishList    =   GeneratorDataWishList(10, 5);
+                    var categories = GeneratorDataCategory(10);
+                    var shipments = GeneratorDataShipment(20);
+                    var products = GeneratorDataProduct(100);
+                    var carts = GeneratorDataCart(20, 10);
+                    var payments = GenerateDataPayment(10);
+                    var wishList = GeneratorDataWishList(10, 5);
 
                     context.Categories.AddRange(categories);
                     context.Products.AddRange(products);
@@ -34,20 +34,20 @@ namespace E_commerceAPI.src.Domain.GeneratorData
             }
         }
 
-/*        public static List<Product> GeneratorDataProduct(int count, List<Category> categories)
-        {
-            var id = 1;
-            var productFaker = new Faker<Product>()
-                .RuleFor(p => p.Id, _ => id++)
-                .RuleFor(p => p.Name, f => f.Commerce.ProductName())
-                .RuleFor(p => p.Description, f => f.Commerce.ProductDescription())
-                .RuleFor(p => p.Price, f => Convert.ToDouble(f.Commerce.Price(1.0m, 1000.0m)))
-                //.RuleFor(p => p.Carts, (f, p) => GeneratorDataCart((f.Random.Int(1, 10)), p.Id))
-                .RuleFor(p => p.Category_Id, f => f.PickRandom(categories).Id)
-                .RuleFor(p => p.Category, f => f.PickRandom(categories));
+        /*        public static List<Product> GeneratorDataProduct(int count, List<Category> categories)
+                {
+                    var id = 1;
+                    var productFaker = new Faker<Product>()
+                        .RuleFor(p => p.Id, _ => id++)
+                        .RuleFor(p => p.Name, f => f.Commerce.ProductName())
+                        .RuleFor(p => p.Description, f => f.Commerce.ProductDescription())
+                        .RuleFor(p => p.Price, f => Convert.ToDouble(f.Commerce.Price(1.0m, 1000.0m)))
+                        //.RuleFor(p => p.Carts, (f, p) => GeneratorDataCart((f.Random.Int(1, 10)), p.Id))
+                        .RuleFor(p => p.Category_Id, f => f.PickRandom(categories).Id)
+                        .RuleFor(p => p.Category, f => f.PickRandom(categories));
 
-            return productFaker.Generate(count);
-        }*/
+                    return productFaker.Generate(count);
+                }*/
 
         public static List<Product> GeneratorDataProduct(int numberOfProducts)
         {
@@ -67,14 +67,14 @@ namespace E_commerceAPI.src.Domain.GeneratorData
         }
 
 
-        public static List<Category> GeneratorDataCategory(int count) 
-        { 
+        public static List<Category> GeneratorDataCategory(int count)
+        {
             var id = 1;
 
             var categoryFaker = new Faker<Category>()
                 .RuleFor(c => c.Id, _ => id++)
                 .RuleFor(c => c.Name, f => f.Commerce.Categories(1)[0]);
-                //.RuleFor(p => p.Products, f => f.PickRandom(products));
+            //.RuleFor(p => p.Products, f => f.PickRandom(products));
 
             return categoryFaker.Generate(count);
         }

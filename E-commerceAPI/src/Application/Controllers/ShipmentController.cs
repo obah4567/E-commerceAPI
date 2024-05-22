@@ -1,7 +1,6 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
-using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers
@@ -62,27 +61,27 @@ namespace E_commerceAPI.src.Application.Controllers
             {
                 return BadRequest(ModelState);
             }
-                var existingShipment = await _ShipmentRepository.GetByIdAsync(Shipment.Id, cancellationToken);
-                if (existingShipment != null)
-                {
-                    return Conflict( new { message = $"Shipment {Shipment.Id} already exists"});
-                }
+            var existingShipment = await _ShipmentRepository.GetByIdAsync(Shipment.Id, cancellationToken);
+            if (existingShipment != null)
+            {
+                return Conflict(new { message = $"Shipment {Shipment.Id} already exists" });
+            }
 
-                var createShipment = new Shipment()
-                {
-                    Id = Shipment.Id,
-                    Date = DateTime.UtcNow, // a tester si la date de creation de maintenant ou aux choix 
-                    Address = Shipment.Address,
-                    City = Shipment.City,
-                    Region = Shipment.Region,
-                    Country = Shipment.Country,
-                    Code_Postal = Shipment.Code_Postal
-                };
+            var createShipment = new Shipment()
+            {
+                Id = Shipment.Id,
+                Date = DateTime.UtcNow, // a tester si la date de creation de maintenant ou aux choix 
+                Address = Shipment.Address,
+                City = Shipment.City,
+                Region = Shipment.Region,
+                Country = Shipment.Country,
+                Code_Postal = Shipment.Code_Postal
+            };
 
-                await _ShipmentRepository.Create(createShipment, cancellationToken);
-                await _ShipmentRepository.Save(cancellationToken);
+            await _ShipmentRepository.Create(createShipment, cancellationToken);
+            await _ShipmentRepository.Save(cancellationToken);
 
-                return CreatedAtRoute("GetShipmentById", new { id = createShipment.Id }, createShipment);
+            return CreatedAtRoute("GetShipmentById", new { id = createShipment.Id }, createShipment);
         }
 
         [HttpDelete("{id}")]

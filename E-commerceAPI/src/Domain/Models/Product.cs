@@ -23,7 +23,6 @@ namespace E_commerceAPI.src.Domain.Models
 
         public List<WishList>? WishLists { get; set; }
 
-
         [ForeignKey("category")]
         public int? Category_Id { get; set; }
         public Category? Category { get; set; }

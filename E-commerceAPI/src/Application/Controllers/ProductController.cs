@@ -1,6 +1,7 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
+using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers;
@@ -31,7 +32,7 @@ public class ProductController : ControllerBase
         return Ok(products);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetProductById")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Product>> GetById(int id, CancellationToken cancellationToken)
@@ -55,28 +56,26 @@ public class ProductController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Product>> Create([FromRoute] ProductDTO product, CancellationToken cancellationToken)
+    public async Task<ActionResult<Product>> Create([FromBody] ProductDTO product, CancellationToken cancellationToken)
     {
-        if (ModelState.IsValid == true)
+        if (!ModelState.IsValid)
         {
-            var createProduct = new Product()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description,
-                Category_Id = product.Category_Id
-            };
-
-            await _productRepository.Create(createProduct, cancellationToken);
-            await _productRepository.Save();
-
-            return CreatedAtRoute(nameof(Create), new { id = product.Id }, createProduct);
+            return BadRequest(ModelState);
         }
-        else
+
+        var createProduct = new Product()
         {
-            return BadRequest();
-        }
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Description = product.Description,
+            Category_Id = product.Category_Id
+        };
+
+        await _productRepository.Create(createProduct, cancellationToken);
+        await _productRepository.Save(cancellationToken);
+
+        return CreatedAtRoute("GetProductById", new { id = createProduct.Id }, createProduct);
     }
 
     [HttpDelete("{id}")]
@@ -84,45 +83,48 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Product>> Delete(int id, CancellationToken cancellationToken)
     {
-        await _productRepository.Delete(id, cancellationToken);
-        await _productRepository.Save();
-
-        return NoContent();
+        try
+        {
+            await _productRepository.Delete(id, cancellationToken);
+            await _productRepository.Save(cancellationToken);
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            _logger.LogError($"L'id {id} n\'existe pas");
+            return StatusCode(StatusCodes.Status404NotFound, "L'Id n'a été trouvé ou à déjà supprimé");
+        }
     }
 
     [HttpPatch]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Product>> Update(int id, [FromRoute] ProductDTO product, CancellationToken cancellationToken)
+    public async Task<ActionResult<Product>> Update(int id, [FromBody] ProductDTO product, CancellationToken cancellationToken)
     {
-        var update = await _productRepository.GetByIdAsync(id, cancellationToken);
-        if (update == null)
+        if (!ModelState.IsValid)
         {
-            return NotFound();
-        }
-
-        if (product == null)
-        {
-            return BadRequest("Le product n'est peut pas être null");
+            return BadRequest(ModelState);
         }
 
         try
         {
-            var createProduct = new Product()
+            var existingProduct = await _productRepository.GetByIdAsync(product.Id, cancellationToken);
+            if (existingProduct == null)
             {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description,
-                Category_Id = product.Category_Id
-            };
+                return NotFound($"Product {product.Id} not found");
+            }
 
-            await _productRepository.Update(id, createProduct, cancellationToken);
-            await _productRepository.Save();
+            existingProduct.Id = product.Id;
+            existingProduct.Name = product.Name;
+            existingProduct.Price = product.Price;
+            existingProduct.Description = product.Description;
+            existingProduct.Category_Id = product.Category_Id;
 
-            return CreatedAtRoute(nameof(Create), new { id = product.Id }, createProduct);
-            //return CreatedAtRoute(nameof(Create), new { id = product.Id }, createProduct);
+            await _productRepository.Update(existingProduct, cancellationToken);
+            await _productRepository.Save(cancellationToken);
+
+            return NoContent();
         }
         catch (Exception)
         {

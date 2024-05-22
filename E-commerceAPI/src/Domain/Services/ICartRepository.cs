@@ -7,8 +7,8 @@ namespace E_commerceAPI.src.Domain.Services
         Task<List<Cart>> GetAllAsync(CancellationToken cancellationToken);
         Task<Cart> GetByIdAsync(int id, CancellationToken cancellationToken);
         Task Create(Cart cart, CancellationToken cancellationToken);
-        Task Update(int id, Cart cart, CancellationToken cancellationToken);
+        Task Update(Cart cart, CancellationToken cancellationToken);
         Task Delete(int id, CancellationToken cancellationToken);
-        Task Save();
+        Task Save(CancellationToken cancellationToken);
     }
 }

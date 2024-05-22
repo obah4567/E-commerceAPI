@@ -3,12 +3,19 @@ using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
 using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
+builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            options.JsonSerializerOptions.MaxDepth = 64; // augmenter la profondeur si nécessaire
+        });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -22,27 +29,28 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<IWishListRepository, WishListRepository>();
 
-//builder.Services.AddLogging(builder => builder.AddConsole());
+builder.Services.AddLogging(builder => builder.AddConsole());
 
-builder.Services.AddLogging();
+/*builder.Services.AddDbContext<Context>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});*/
 
 builder.Services.AddDbContext<Context>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlite("Data Source=ECommerce.db");
 });
-
-
 
 
 var app = builder.Build();
 
 //Insertion des fausses données generer grâce à Bogus 
-/*using (var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     GeneratorDataByBogus.Seed(services);
 }
-*/
+
 
 // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())

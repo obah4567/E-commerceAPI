@@ -1,6 +1,7 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
+using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers
@@ -31,7 +32,7 @@ namespace E_commerceAPI.src.Application.Controllers
             return Ok(Shipments);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetShipmentById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Shipment>> GetById(int id, CancellationToken cancellationToken)
@@ -55,10 +56,18 @@ namespace E_commerceAPI.src.Application.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Shipment>> Create([FromRoute] ShipmentDTO Shipment, CancellationToken cancellationToken)
+        public async Task<ActionResult<Shipment>> Create([FromBody] ShipmentDTO Shipment, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid == true)
+            if (!ModelState.IsValid)
             {
+                return BadRequest(ModelState);
+            }
+                var existingShipment = await _ShipmentRepository.GetByIdAsync(Shipment.Id, cancellationToken);
+                if (existingShipment != null)
+                {
+                    return Conflict( new { message = $"Shipment {Shipment.Id} already exists"});
+                }
+
                 var createShipment = new Shipment()
                 {
                     Id = Shipment.Id,
@@ -71,14 +80,9 @@ namespace E_commerceAPI.src.Application.Controllers
                 };
 
                 await _ShipmentRepository.Create(createShipment, cancellationToken);
-                await _ShipmentRepository.Save();
+                await _ShipmentRepository.Save(cancellationToken);
 
-                return CreatedAtRoute(nameof(Create), new { id = Shipment.Id }, createShipment);
-            }
-            else
-            {
-                return BadRequest();
-            }
+                return CreatedAtRoute("GetShipmentById", new { id = createShipment.Id }, createShipment);
         }
 
         [HttpDelete("{id}")]
@@ -86,47 +90,51 @@ namespace E_commerceAPI.src.Application.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Shipment>> Delete(int id, CancellationToken cancellationToken)
         {
-            await _ShipmentRepository.Delete(id, cancellationToken);
-            await _ShipmentRepository.Save();
+            try
+            {
+                await _ShipmentRepository.Delete(id, cancellationToken);
+                await _ShipmentRepository.Save(cancellationToken);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"L'id {id} n\'existe pas");
+                return StatusCode(StatusCodes.Status404NotFound, "L'Id n'a été trouvé ou à déjà supprimé");
+            }
         }
 
         [HttpPatch]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Shipment>> Update(int id, [FromRoute] ShipmentDTO Shipment, CancellationToken cancellationToken)
+        public async Task<ActionResult<Shipment>> Update(int id, [FromBody] ShipmentDTO Shipment, CancellationToken cancellationToken)
         {
-            var update = await _ShipmentRepository.GetByIdAsync(id, cancellationToken);
-            if (update == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
-            }
-
-            if (Shipment == null)
-            {
-                return BadRequest("Le Shipment n'est peut pas être null");
+                return BadRequest(ModelState);
             }
 
             try
             {
-                var createShipment = new Shipment()
+                var existingShipment = await _ShipmentRepository.GetByIdAsync(Shipment.Id, cancellationToken);
+                if (existingShipment == null)
                 {
-                    Id = Shipment.Id,
-                    Date = DateTime.UtcNow, // a tester si la date de creation de maintenant ou aux choix 
-                    Address = Shipment.Address,
-                    City = Shipment.City,
-                    Region = Shipment.Region,
-                    Country = Shipment.Country,
-                    Code_Postal = Shipment.Code_Postal
-                };
+                    return NotFound($"Shipment {Shipment.Id} not found");
+                }
 
-                await _ShipmentRepository.Update(id, createShipment, cancellationToken);
-                await _ShipmentRepository.Save();
+                existingShipment.Id = Shipment.Id;
+                existingShipment.Date = DateTime.UtcNow; // a tester si la date de creation de maintenant ou aux choix 
+                existingShipment.Address = Shipment.Address;
+                existingShipment.City = Shipment.City;
+                existingShipment.Region = Shipment.Region;
+                existingShipment.Country = Shipment.Country;
+                existingShipment.Code_Postal = Shipment.Code_Postal;
 
-                return CreatedAtRoute(nameof(Create), new { id = Shipment.Id }, createShipment);
-                //return CreatedAtRoute(nameof(Create), new { id = Shipment.Id }, createShipment);
+                await _ShipmentRepository.Update(existingShipment, cancellationToken);
+                await _ShipmentRepository.Save(cancellationToken);
+
+                return NoContent();
             }
             catch (Exception)
             {

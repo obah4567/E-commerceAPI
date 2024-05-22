@@ -3,7 +3,6 @@ using System;
 using E_commerceAPI.src.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -12,38 +11,32 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commerceAPI.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20240515160515_EcommerceDBInitialMigrationNewVersion")]
-    partial class EcommerceDBInitialMigrationNewVersion
+    [Migration("20240517151720_InitialFakerDataTest")]
+    partial class InitialFakerDataTest
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("E_commerceAPI.Models.Cart", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Cart", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("ProductId")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Product_Id")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -52,76 +45,70 @@ namespace E_commerceAPI.Migrations
                     b.ToTable("Carts");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Category", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Payment", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Payment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<double>("Amount")
-                        .HasColumnType("float");
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Method")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Payment");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Product", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("Category_Id")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("Price")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -135,72 +122,81 @@ namespace E_commerceAPI.Migrations
                             Id = 1,
                             Description = "Description1",
                             Name = "Product1",
-                            Price = 10m
+                            Price = 10.0
                         },
                         new
                         {
                             Id = 2,
                             Description = "Description2",
                             Name = "Product2",
-                            Price = 20m
+                            Price = 20.0
                         });
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Shipment", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Shipment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Code_Postal")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Region")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Shipment");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "128 Eric Park",
+                            City = "Starkbury",
+                            Code_Postal = "27588",
+                            Country = "Tuvalu",
+                            Date = new DateTime(2024, 10, 24, 1, 15, 15, 106, DateTimeKind.Local).AddTicks(2669),
+                            IsDeleted = false,
+                            Region = "Oklahoma"
+                        });
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.WishList", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.WishList", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("ProductId")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("Product_Id")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -209,39 +205,39 @@ namespace E_commerceAPI.Migrations
                     b.ToTable("WishList");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Cart", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Cart", b =>
                 {
-                    b.HasOne("E_commerceAPI.Models.Product", "Product")
+                    b.HasOne("E_commerceAPI.src.Domain.Models.Product", "Product")
                         .WithMany("Carts")
                         .HasForeignKey("ProductId");
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Product", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Product", b =>
                 {
-                    b.HasOne("E_commerceAPI.Models.Category", "Category")
+                    b.HasOne("E_commerceAPI.src.Domain.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.WishList", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.WishList", b =>
                 {
-                    b.HasOne("E_commerceAPI.Models.Product", "Product")
+                    b.HasOne("E_commerceAPI.src.Domain.Models.Product", "Product")
                         .WithMany("WishLists")
                         .HasForeignKey("ProductId");
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Category", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Category", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("E_commerceAPI.Models.Product", b =>
+            modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Product", b =>
                 {
                     b.Navigation("Carts");
 

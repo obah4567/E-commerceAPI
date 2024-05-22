@@ -1,6 +1,7 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
+using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers
@@ -55,26 +56,30 @@ namespace E_commerceAPI.src.Application.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<WishList>> Create([FromRoute] WishListDTO WishList, CancellationToken cancellationToken)
+        public async Task<ActionResult<WishList>> Create([FromBody] WishListDTO WishList, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid == true)
+            if (!ModelState.IsValid)
             {
-                var createWishList = new WishList()
-                {
-                    Id = WishList.Id,
-                    Product_Id = WishList.Product_Id,
-                    Product = WishList.Product
-                };
-
-                await _WishListRepository.Create(createWishList, cancellationToken);
-                await _WishListRepository.Save();
-
-                return CreatedAtRoute(nameof(Create), new { id = WishList.Id }, createWishList);
+                return BadRequest(ModelState);
             }
-            else
+
+            var existingCart = await _WishListRepository.GetByIdAsync(WishList.Id, cancellationToken);
+            if (existingCart != null)
             {
-                return BadRequest();
+                return Conflict(new { message = $"WishList {WishList.Id} already exists" });
             }
+
+            var createWishList = new WishList()
+            {
+                Id = WishList.Id,
+                Product_Id = WishList.Product_Id,
+                Product = WishList.Product
+            };
+
+            await _WishListRepository.Create(createWishList, cancellationToken);
+            await _WishListRepository.Save(cancellationToken);
+
+            return CreatedAtRoute("GetById", new { id = createWishList.Id }, createWishList);
         }
 
         [HttpDelete("{id}")]
@@ -85,7 +90,7 @@ namespace E_commerceAPI.src.Application.Controllers
             try
             {
                 await _WishListRepository.Delete(id, cancellationToken);
-                await _WishListRepository.Save();
+                await _WishListRepository.Save(cancellationToken);
 
                 return NoContent();
             }
@@ -96,42 +101,37 @@ namespace E_commerceAPI.src.Application.Controllers
             }
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<WishList>> Update(int id, [FromRoute] WishListDTO WishList, CancellationToken cancellationToken)
+        public async Task<ActionResult<WishList>> Update(int id, [FromBody] WishListDTO WishList, CancellationToken cancellationToken)
         {
-            var update = await _WishListRepository.GetByIdAsync(id, cancellationToken);
-            if (update == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return BadRequest(ModelState);
             }
-
-            if (WishList == null)
-            {
-                return BadRequest("Le WishList n'est peut pas être null");
-            }
-
             try
             {
-                var createWishList = new WishList()
+                var existingCart = await _WishListRepository.GetByIdAsync(WishList.Id, cancellationToken);
+                if (existingCart == null)
                 {
-                    Id = WishList.Id,
-                    Product_Id = WishList.Product_Id,
-                    Product = WishList.Product
-                };
+                    return NotFound($"WishList {WishList.Id} not found");
+                }
 
-                await _WishListRepository.Update(id, createWishList, cancellationToken);
-                await _WishListRepository.Save();
+                existingCart.Id = WishList.Id;
+                existingCart.Product_Id = WishList.Product_Id;
+                existingCart.Product = WishList.Product;
+                
+                await _WishListRepository.Update(existingCart, cancellationToken);
+                await _WishListRepository.Save(cancellationToken);
 
-                return CreatedAtRoute(nameof(Create), new { id = WishList.Id }, createWishList);
-                //return CreatedAtRoute(nameof(Create), new { id = WishList.Id }, createWishList);
+                return NoContent();
             }
             catch (Exception)
             {
-                _logger.LogError($"L'id={id} / le WishList={WishList} n\'existe pas");
-                return StatusCode(500, "Une erreur est survenue lors de la mise à jour du WishList");
+                _logger.LogError($"L'id={id} / le wishlist={WishList} n\'existe pas");
+                return StatusCode(500, "Une erreur est survenue lors de la mise à jour de la liste des souhaits");
             }
         }
     }

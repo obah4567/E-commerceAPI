@@ -2,6 +2,7 @@
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {
@@ -22,19 +23,17 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.CompletedTask;
         }
 
-        public Task Delete(int id, CancellationToken cancellationToken)
+        public async Task Delete(int id, CancellationToken cancellationToken)
         {
-            var wishList = _context.WishList.Where(w => w.Id == id).FirstOrDefault();
+            var wishList = await _context.WishList.FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
             if (wishList != null)
             {
                 _context.WishList.Remove(wishList);
                 _context.SaveChanges();
-
-                return Task.CompletedTask;
             }
             else
             {
-                return null;
+                throw new ArgumentException("Don't found ");
             }
         }
 
@@ -50,35 +49,20 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             var wishList = _context.WishList.Where(w => w.Id == id).FirstOrDefault();
             if (wishList == null)
             {
-                return null;
+                throw new ArgumentException($"{wishList} not exist");
             }
             return Task.FromResult(wishList);
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellation)
         {
-            _context.SaveChanges();
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellation);
         }
 
-        public Task Update(int id, WishList wishList, CancellationToken cancellationToken)
+        public async Task Update(WishList wishList, CancellationToken cancellationToken)
         {
-            var wishL = _context.WishList.Where(w => w.Id == id).FirstOrDefault();
-            if (wishL == null)
-            {
-                return null;
-            }
-            var updateWishList = new WishListDTO()
-            {
-                Id = wishList.Id,
-                Product_Id = wishList.Product_Id,
-                Product = wishList.Product
-            };
-
-            _context.Add(updateWishList);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            _context.WishList.Update(wishList);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

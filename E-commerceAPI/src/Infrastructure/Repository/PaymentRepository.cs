@@ -2,6 +2,8 @@
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {
@@ -24,63 +26,44 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.FromResult(payement);
         }
 
-        public Task<Payment> GetByIdAsync(int id, CancellationToken cancellationToken)
+
+        public async Task<Payment> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var payement = _context.Payment.Where(p => p.Id == id).FirstOrDefault();
-            if (payement == null)
+            var getById = await _context.Payment.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (getById == null)
             {
                 return null;
             }
-            return Task.FromResult(payement);
+            return getById;
         }
 
-        public Task Create(Payment payment, CancellationToken cancellationToken)
+
+        public async Task Create(Payment payment, CancellationToken cancellationToken)
         {
             _context.Payment.Add(payment);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Delete(int id, CancellationToken cancellationToken)
+        public async Task Delete(int id, CancellationToken cancellationToken)
         {
-            var payement = _context.Payment.Where(p => p.Id == id).FirstOrDefault();
+            var payement = await _context.Payment.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
             if (payement == null)
             {
-                return null;
+                throw new ArgumentException($"L'{id} n'existe pas ou été supprimé");
             }
             _context.Remove(payement);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellationToken)
         {
-            _context.SaveChanges();
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Update(int id, Payment payment, CancellationToken cancellationToken)
+        public async Task Update(Payment payment, CancellationToken cancellationToken)
         {
-            var payement = _context.Payment.Where(p => p.Id == id).FirstOrDefault();
-            if (payement == null)
-            {
-                return null;
-            }
-
-            var updatePayment = new PaymentDTO()
-            {
-                Id = payement.Id,
-                Date = payment.Date,
-                Method = payment.Method,
-                Amount = payment.Amount
-            };
-
-            _context.Add(updatePayment);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            _context.Update(payment);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

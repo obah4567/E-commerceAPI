@@ -7,8 +7,8 @@ namespace E_commerceAPI.src.Domain.Services
         Task<List<WishList>> GetAllAsync(CancellationToken cancellationToken);
         Task<WishList> GetByIdAsync(int id, CancellationToken cancellationToken);
         Task Create(WishList WishList, CancellationToken cancellationToken);
-        Task Update(int id, WishList WishList, CancellationToken cancellationToken);
+        Task Update(WishList WishList, CancellationToken cancellationToken);
         Task Delete(int id, CancellationToken cancellationToken);
-        Task Save();
+        Task Save(CancellationToken cancellationToken);
     }
 }

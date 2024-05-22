@@ -3,6 +3,7 @@ using System;
 using E_commerceAPI.src.Infrastructure.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_commerceAPI.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20240517154452_InitialFakerDataTestShipment")]
+    partial class InitialFakerDataTestShipment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -112,6 +115,22 @@ namespace E_commerceAPI.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Description1",
+                            Name = "Product1",
+                            Price = 10.0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Description2",
+                            Name = "Product2",
+                            Price = 20.0
+                        });
                 });
 
             modelBuilder.Entity("E_commerceAPI.src.Domain.Models.Shipment", b =>
@@ -149,6 +168,19 @@ namespace E_commerceAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Shipment");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "817 Alejandra Hollow",
+                            City = "Port Shanny",
+                            Code_Postal = "65208",
+                            Country = "Sudan",
+                            Date = new DateTime(2024, 9, 5, 1, 35, 19, 85, DateTimeKind.Local).AddTicks(7342),
+                            IsDeleted = false,
+                            Region = "Massachusetts"
+                        });
                 });
 
             modelBuilder.Entity("E_commerceAPI.src.Domain.Models.WishList", b =>

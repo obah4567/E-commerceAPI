@@ -22,65 +22,42 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.FromResult(products);
         }
 
-        public Task<Product> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<Product> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var product = _context.Products.Include(category => category.Category).Where(prod => prod.Id == id).FirstOrDefault();
+            var product = await _context.Products.Include(category => category.Category).FirstOrDefaultAsync(prod => prod.Id == id, cancellationToken);
             if (product == null)
             {
                 return null;
             }
-            return Task.FromResult(product);
+            return product;
         }
 
-        public Task Create(Product product, CancellationToken cancellationToken)
+        public async Task Create(Product product, CancellationToken cancellationToken)
         {
             _context.Products.Add(product);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Delete(int id, CancellationToken cancellationToken)
+        public async Task Delete(int id, CancellationToken cancellationToken)
         {
-            var product = _context.Products.Include(category => category.Category).Where(prod => prod.Id == id).FirstOrDefault();
+            var product = await _context.Products.Include(category => category.Category).FirstOrDefaultAsync(prod => prod.Id == id, cancellationToken);
             if (product == null)
             {
-                return null;
+                throw new ArgumentException($"L'{id} n'existe pas ou été supprimé");
             }
             _context.Products.Remove(product);
             _context.SaveChanges();
-
-            return Task.CompletedTask;
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellationToken)
         {
-            _context.SaveChanges();
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Update(int id, Product product, CancellationToken cancellationToken)
+        public async Task Update(Product product, CancellationToken cancellationToken)
         {
-            var updateProduct = _context.Products.Include(category => category.Category).Where(prod => prod.Id == id).FirstOrDefault();
-            if (updateProduct == null)
-            {
-                return null;
-            }
-
-            var updateProductDto = new ProductDTO()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                Description = product.Description,
-
-                Category_Id = product.Category_Id
-            };
-
-            _context.Add(updateProductDto);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            _context.Update(product);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

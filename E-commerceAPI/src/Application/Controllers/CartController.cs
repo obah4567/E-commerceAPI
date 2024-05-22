@@ -31,7 +31,7 @@ namespace E_commerceAPI.src.Application.Controllers
             return Ok(Carts);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Cart>> GetById(int id, CancellationToken cancellationToken)
@@ -55,26 +55,31 @@ namespace E_commerceAPI.src.Application.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Cart>> Create([FromRoute] CartDTO Cart, CancellationToken cancellationToken)
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<Cart>> Create([FromBody] CartDTO Cart, CancellationToken cancellationToken)
         {
-            if (ModelState.IsValid == true)
+            if (!ModelState.IsValid)
             {
-                var createCart = new Cart()
-                {
-                    Id = Cart.Id,
-                    Quantity = Cart.Quantity,
-                    Product_Id = Cart.Product_Id
-                };
-
-                await _CartRepository.Create(createCart, cancellationToken);
-                await _CartRepository.Save();
-
-                return CreatedAtRoute(nameof(Create), new { id = Cart.Id }, createCart);
+                return BadRequest(ModelState);
             }
-            else
+
+            var existingCart = await _CartRepository.GetByIdAsync(Cart.Id, cancellationToken);
+            if (existingCart != null)
             {
-                return BadRequest();
+                return Conflict(new { message = $"Cart {Cart.Id} already exists" });
             }
+
+            var createCart = new Cart()
+            {
+                Id = Cart.Id,
+                Quantity = Cart.Quantity,
+                Product_Id = Cart.Product_Id
+            };
+
+            await _CartRepository.Create(createCart, cancellationToken);
+            await _CartRepository.Save(cancellationToken);
+
+            return CreatedAtRoute("GetById", new { id = createCart.Id }, createCart);
         }
 
         [HttpDelete("{id}")]
@@ -82,43 +87,45 @@ namespace E_commerceAPI.src.Application.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Cart>> Delete(int id, CancellationToken cancellationToken)
         {
-            await _CartRepository.Delete(id, cancellationToken);
-            await _CartRepository.Save();
+            try
+            {
+                await _CartRepository.Delete(id, cancellationToken);
+                await _CartRepository.Save(cancellationToken);
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"L'id {id} n\'existe pas");
+                return StatusCode(StatusCodes.Status404NotFound, "L'Id n'a été trouvé ou à déjà supprimé");
+            }
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Cart>> Update(int id, [FromRoute] CartDTO Cart, CancellationToken cancellationToken)
+        public async Task<ActionResult<Cart>> Update(int id, [FromBody] CartDTO Cart, CancellationToken cancellationToken)
         {
-            var update = await _CartRepository.GetByIdAsync(id, cancellationToken);
-            if (update == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return BadRequest(ModelState);
             }
-
-            if (Cart == null)
-            {
-                return BadRequest("Le Cart n'est peut pas être null");
-            }
-
             try
             {
-                var createCart = new Cart()
+                var existingCart = await _CartRepository.GetByIdAsync(Cart.Id, cancellationToken);
+                if (existingCart == null)
                 {
-                    Id = Cart.Id,
-                    Quantity = Cart.Quantity,
-                    Product_Id = Cart.Product_Id
-                };
+                    return NotFound($"Cart {Cart.Id} not found");
+                }
 
-                await _CartRepository.Update(id, createCart, cancellationToken);
-                await _CartRepository.Save();
+                existingCart.Quantity = Cart.Quantity;
+                existingCart.Product_Id = Cart.Product_Id;
 
-                return CreatedAtRoute(nameof(Create), new { id = Cart.Id }, createCart);
-                //return CreatedAtRoute(nameof(Create), new { id = Cart.Id }, createCart);
+                await _CartRepository.Update(existingCart, cancellationToken);
+                await _CartRepository.Save(cancellationToken);
+
+                return NoContent();
             }
             catch (Exception)
             {

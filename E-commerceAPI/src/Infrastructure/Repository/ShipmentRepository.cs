@@ -2,6 +2,7 @@
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {
@@ -24,65 +25,42 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.FromResult(shipment);
         }
 
-        public Task<Shipment> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<Shipment> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var shipment = _dbContexts.Shipment.Where(s => s.Id == id).FirstOrDefault();
+            var shipment = await _dbContexts.Shipment.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
             if (shipment == null)
             {
                 return null;
             }
-            return Task.FromResult(shipment);
+            return shipment;
         }
 
-        public Task Create(Shipment Shipment, CancellationToken cancellationToken)
+        public async Task Create(Shipment Shipment, CancellationToken cancellationToken)
         {
             _dbContexts.Shipment.Add(Shipment);
-            _dbContexts.SaveChanges();
-
-            return Task.CompletedTask;
+            _dbContexts.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Delete(int id, CancellationToken cancellationToken)
+        public async Task Delete(int id, CancellationToken cancellationToken)
         {
-            var shipment = _dbContexts.Shipment.Where(s => s.Id == id).FirstOrDefault();
+            var shipment = await _dbContexts.Shipment.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
             if (shipment == null)
             {
-                return null;
+                throw new ArgumentException($"L'{id} n'existe pas ou été supprimé");
             }
             _dbContexts.Shipment.Remove(shipment);
-            _dbContexts.SaveChanges();
-
-            return Task.CompletedTask;
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellationToken)
         {
-            _dbContexts.SaveChanges();
-            return Task.CompletedTask;
+            await _dbContexts.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Update(int id, Shipment shipment, CancellationToken cancellationToken)
+        public async Task Update(Shipment shipment, CancellationToken cancellationToken)
         {
-            var upSipment = _dbContexts.Shipment.Where(s => s.Id == id).FirstOrDefault();
-            if (upSipment == null)
-            {
-                return null;
-            }
+            _dbContexts.Shipment.Update(shipment);
+            await _dbContexts.SaveChangesAsync(cancellationToken);
 
-            var updateShipment = new ShipmentDTO()
-            {
-                Id = shipment.Id,
-                Date = shipment.Date,
-                Address = shipment.Address,
-                City = shipment.City,
-                Region = shipment.Region,
-                Code_Postal = shipment.Code_Postal
-            };
-
-            _dbContexts.Add(updateShipment);
-            _dbContexts.SaveChanges();
-
-            return Task.CompletedTask;
         }
     }
 }

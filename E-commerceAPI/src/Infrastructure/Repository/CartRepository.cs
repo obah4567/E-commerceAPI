@@ -2,6 +2,8 @@
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {
@@ -24,22 +26,20 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.FromResult(carts);
         }
 
-        public Task<Cart> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<Cart> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var cart = _context.Carts.Where(x => x.Id == id).FirstOrDefault();
-            if (cart == null)
+            var getById = await _context.Carts.FirstOrDefaultAsync(x => x.Id == id,cancellationToken);
+            if (getById == null)
             {
                 return null;
             }
-            return Task.FromResult(cart);
+            return getById;
         }
 
-        public Task Create(Cart cart, CancellationToken cancellationToken)
+        public async Task Create(Cart cart, CancellationToken cancellationToken)
         {
             _context.Carts.Add(cart);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public Task Delete(int id, CancellationToken cancellationToken)
@@ -47,7 +47,7 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             var cart = _context.Carts.Where(c => c.Id == id).FirstOrDefault();
             if (cart == null)
             {
-                return null;
+                throw new ArgumentException($"L'{id} n'existe pas ou été supprimé");
             }
             _context.Carts.Remove(cart);
             _context.SaveChanges();
@@ -55,29 +55,15 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.CompletedTask;
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellationToken)
         {
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
-        public Task Update(int id, Cart cart, CancellationToken cancellationToken)
-        {
-            var upCart = _context.Carts.Where(c => c.Id == id).FirstOrDefault();
-            if (upCart == null)
-            {
-                return null;
-            }
-            var updateCart = new CartDTO()
-            {
-                Id = cart.Id,
-                Quantity = cart.Quantity,
-                Product_Id = cart.Product_Id
-            };
-            _context.Add(updateCart);
-            _context.SaveChanges();
 
-            return Task.CompletedTask;
+        public async Task Update(Cart cart, CancellationToken cancellationToken)
+        {
+            _context.Update(cart);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

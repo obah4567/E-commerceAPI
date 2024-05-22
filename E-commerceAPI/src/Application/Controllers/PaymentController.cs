@@ -1,6 +1,7 @@
 ﻿using E_commerceAPI.src.Domain.DTO;
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
+using E_commerceAPI.src.Infrastructure.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_commerceAPI.src.Application.Controllers;
@@ -30,7 +31,7 @@ public class PaymentController : ControllerBase
         return Ok(payment);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetPaymentById")]
     public async Task<ActionResult<Payment>> GetById(int id, CancellationToken cancellationToken)
     {
         var getAll = await _paymentRepository.GetByIdAsync(id, cancellationToken);
@@ -44,27 +45,31 @@ public class PaymentController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Payment>> Create([FromRoute] PaymentDTO payment, CancellationToken cancellationToken)
+    public async Task<ActionResult<Payment>> Create([FromBody] PaymentDTO payment, CancellationToken cancellationToken)
     {
-        if (ModelState.IsValid == true)
+        if (!ModelState.IsValid)
         {
-            var createPayment = new Payment()
-            {
-                Id = payment.Id,
-                Date = payment.Date,
-                Amount = payment.Amount,
-                Method = payment.Method
-            };
-
-            await _paymentRepository.Create(createPayment, cancellationToken);
-            await _paymentRepository.Save();
-
-            return CreatedAtRoute(nameof(Create), new { id = payment.Id }, createPayment);
+            return BadRequest(ModelState);
         }
-        else
+        
+        var existingPayementId = await _paymentRepository.GetByIdAsync(payment.Id, cancellationToken);
+        if (existingPayementId != null)
         {
-            return BadRequest();
+            return Conflict(new { message = $"Payment {payment.Id} already exists" });
         }
+
+        var createPayment = new Payment()
+        {
+            Id = payment.Id,
+            Date = payment.Date,
+            Amount = payment.Amount,
+            Method = payment.Method
+        };
+
+        await _paymentRepository.Create(createPayment, cancellationToken);
+        await _paymentRepository.Save(cancellationToken);
+
+        return CreatedAtRoute("GetPaymentById", new { id = createPayment.Id }, createPayment);
     }
 
     [HttpDelete("{id}")]
@@ -72,48 +77,50 @@ public class PaymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Payment>> Delete(int id, CancellationToken cancellationToken)
     {
-        await _paymentRepository.Delete(id, cancellationToken);
-        await _paymentRepository.Save();
-
-        return NoContent();
-    }
-
-    [HttpPatch]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Product>> Update(int id, [FromRoute] PaymentDTO paymentDTO, CancellationToken cancellationToken)
-    {
-        var update = await _paymentRepository.GetByIdAsync(id, cancellationToken);
-        if (update == null)
-        {
-            return NotFound();
-        }
-
-        if (paymentDTO == null)
-        {
-            return BadRequest("Le payment n'est peut pas être null");
-        }
-
         try
         {
-            var createPayment = new Payment()
-            {
-                Id = paymentDTO.Id,
-                Date = paymentDTO.Date,
-                Amount = paymentDTO.Amount,
-                Method = paymentDTO.Method
-            };
+            await _paymentRepository.Delete(id, cancellationToken);
+            await _paymentRepository.Save(cancellationToken);
 
-            await _paymentRepository.Update(id, createPayment, cancellationToken);
-            await _paymentRepository.Save();
-
-            return CreatedAtRoute(nameof(Create), new { id = paymentDTO.Id }, createPayment);
-            //return CreatedAtRoute(nameof(Create), new { id = product.Id }, createProduct);
+            return NoContent();
         }
         catch (Exception)
         {
-            _logger.LogError($"L'id={id} / le payment={paymentDTO} n\'existe pas");
+            _logger.LogError($"L'id {id} n\'existe pas");
+            return StatusCode(StatusCodes.Status404NotFound, "L'Id n'a été trouvé ou à déjà supprimé");
+        }
+    }
+
+    [HttpPatch("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Payment>> Update(int id, [FromBody] PaymentDTO payment, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            var existingPayment = await _paymentRepository.GetByIdAsync(id, cancellationToken);
+            if (existingPayment == null)
+            {
+                return NotFound($"Payment {payment.Id} not found");
+            }
+            
+            existingPayment.Date = payment.Date;
+            existingPayment.Method = payment.Method;
+            existingPayment.Amount = payment.Amount;
+
+            await _paymentRepository.Update(existingPayment, cancellationToken);
+            await _paymentRepository.Save(cancellationToken);
+
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            _logger.LogError($"L'id={id} / le payment={payment} n\'existe pas");
             return StatusCode(500, "Une erreur est survenue lors de la mise à jour du payment");
         }
     }

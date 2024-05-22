@@ -2,6 +2,7 @@
 using E_commerceAPI.src.Domain.Models;
 using E_commerceAPI.src.Domain.Services;
 using E_commerceAPI.src.Infrastructure.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_commerceAPI.src.Infrastructure.Repository
 {
@@ -24,21 +25,20 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             return Task.FromResult(category);
         }
 
-        public Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<Category> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var category = _context.Categories.Where(cat => cat.Id == id).FirstOrDefault();
-            if (category == null)
+            var getById = await _context.Categories.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (getById == null)
             {
                 return null;
             }
-            return Task.FromResult(category);
+            return getById;
         }
-        public Task Create(Category Category, CancellationToken cancellationToken)
+
+        public async Task Create(Category Category, CancellationToken cancellationToken)
         {
             _context.Categories.Add(Category);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public Task Delete(int id, CancellationToken cancellationToken)
@@ -46,40 +46,23 @@ namespace E_commerceAPI.src.Infrastructure.Repository
             var category = _context.Categories.Where(cat => cat.Id == id).FirstOrDefault();
             if (category == null)
             {
-                return null;
+                throw new ArgumentException($"Cet {id} n'existe pas ou été supprimé");
             }
-            _context.Remove(category);
+            _context.Categories.Remove(category);
             _context.SaveChanges();
 
             return Task.CompletedTask;
         }
 
-        public Task Save()
+        public async Task Save(CancellationToken cancellationToken)
         {
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Update(int id, Category category, CancellationToken cancellationToken)
+        public async Task Update(Category category, CancellationToken cancellationToken)
         {
-            var cat = _context.Categories.Where(cat => cat.Id == id).FirstOrDefault();
-            if (cat == null)
-            {
-                return null;
-            }
-
-            var updateCategory = new CategoryDto()
-            {
-                Id = category.Id,
-                Name = category.Name
-                //a revoir s'il ne faut pas mettre à jour la liste des produits
-            };
-
-            _context.Add(updateCategory);
-            _context.SaveChanges();
-
-            return Task.CompletedTask;
+            _context.Update(category);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

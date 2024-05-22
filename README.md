@@ -7,7 +7,7 @@ Mise en place de Log (Logging) pour capturer les informations en sortie et pour 
 Tests Unitaires pour tester le Repository (seulement pour ProductRepository)
 
 #Clean Code Architecture
-
+.
 E-commerceAPI.sln
 │
 ├── E-commerceAPI.Domain

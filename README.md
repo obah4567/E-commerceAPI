@@ -7,51 +7,54 @@ Mise en place de Log (Logging) pour capturer les informations en sortie et pour 
 Tests Unitaires pour tester le Repository (seulement pour ProductRepository)
 
 #Clean Code Architecture
-.
+
+E-commerceAPI.sln
+
 E-commerceAPI.sln
 │
 ├── E-commerceAPI.Domain
 │   ├── Models
-│   │   └── Carts.cs
-│   │   └── Category.cs
-│   │   └── Product.cs
+│   │   ├── Carts.cs
+│   │   ├── Category.cs
+│   │   ├── Product.cs
 │   │   └── ...
-│   │   
+│   │
 │   ├── DTO
-│   │   └── CartDTO.cs
-│   │   └── CategoryDTO.cs
-│   │   └── ProductDTO.cs
+│   │   ├── CartDTO.cs
+│   │   ├── CategoryDTO.cs
+│   │   ├── ProductDTO.cs
 │   │   └── ...
-│   │   
+│   │
 │   ├── GeneratorDataByBogus
 │   │   └── GeneratorDataByBogus.cs 
-│   │   
+│   │
 │   └── Services
-│       └── ICartRepository.cs
-│       └── ICategoryRepository.cs
+│       ├── ICartRepository.cs
+│       ├── ICategoryRepository.cs
 │       └── ...
 │
 ├── E-commerceAPI.Application
 │   └── Controllers
-│       └── CartController.cs
-|       └── CategoryController.cs
-|       └── PaymentController.cs
-|       └── ProductController.cs
-|       └── ShipmentController.cs
-|       └── WishListController.cs
-|     └─ Program.cs
+│       ├── CartController.cs
+│       ├── CategoryController.cs
+│       ├── PaymentController.cs
+│       ├── ProductController.cs
+│       ├── ShipmentController.cs
+│       └── WishListController.cs
+│       └── Program.cs
 │
 ├── E-commerceAPI.Infrastructure
 │   ├── DbContexts
 │   │   └── Context.cs
 │   │
 │   └── Repositories
-│       └── CartRepository.cs
-│       └── CategoryRepository.cs
+│       ├── CartRepository.cs
+│       ├── CategoryRepository.cs
 │       └── ...
 │
 └── E-commerceAPI.Tests
     └── Infrastructure
       └── Repository
-        └── ProductRepositoryTests
+        └── ProductRepositoryTests.cs
         └── ...
+
